@@ -1,0 +1,13 @@
+# Stack without any healthcheck: its state only comes from the container
+# state and the restart count.
+services:
+  worker:
+    image: busybox:1.37
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do date; sleep 60; done"]
+    mem_limit: 16m
+  ticker:
+    image: busybox:1.37
+    restart: unless-stopped
+    command: ["sh", "-c", "while true; do sleep 300; done"]
+    mem_limit: 16m

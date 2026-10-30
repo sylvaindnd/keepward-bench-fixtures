@@ -1,0 +1,41 @@
+# Main stack of the clone: a web service behind Traefik and a cache, both
+# with a healthcheck. Started with a project name that differs from the
+# folder name (see up.sh), and once more as an orphan project.
+services:
+  web:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME:-fixtures}-web.rule=Host(`${FIXTURES_HOST:-fixtures.example.test}`)
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME:-fixtures}-web.entrypoints=websecure
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME:-fixtures}-web.tls=true
+    networks: [default, traefik_network]
+    mem_limit: 32m
+
+  cache:
+    image: redis:8.2-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    mem_limit: 32m
+
+  assets:
+    # One-shot job that exits at once, like an asset build: an exited
+    # container inside a running stack.
+    image: busybox:1.37
+    command: ["true"]
+    mem_limit: 16m
+
+networks:
+  traefik_network:
+    external: true

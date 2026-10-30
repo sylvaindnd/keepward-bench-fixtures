@@ -1,0 +1,11 @@
+# Sub-stack in a sub-folder of the same clone, with its own project name.
+services:
+  redirect:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    mem_limit: 32m
